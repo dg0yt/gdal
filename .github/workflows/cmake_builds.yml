@@ -186,6 +186,14 @@ jobs:
       #  working-directory: ${{ github.workspace }}
       #  env:
       #    PROJ_LIB: "C:\\tools\\msys64\\mingw64\\share\\proj"
+      - name: Test post-install usage (with pkg-config)
+        run: |
+          $script = @'
+          ./autotest/postinstall/test_pkg-config.sh $GITHUB_WORKSPACE/install-gdal
+          '@
+          & c:\tools\msys64\usr\bin\bash.exe -lc $script
+        env:
+          MSYSTEM: MINGW64
 
   build-windows-conda:
     runs-on: windows-2022
