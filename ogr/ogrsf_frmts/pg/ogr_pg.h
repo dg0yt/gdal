@@ -38,7 +38,7 @@
 #include "ogrpgutility.h"
 #include "ogr_pgdump.h"
 
-#include <map>
+#include <memory>
 #include <vector>
 
 /* These are the OIDs for some builtin types, as returned by PQftype(). */
@@ -595,9 +595,11 @@ class OGRPGDataSource final : public OGRDataSource
 
     // We maintain a list of known SRID to reduce the number of trips to
     // the database to get SRSes.
-    std::map<int,
-             std::unique_ptr<OGRSpatialReference, OGRSpatialReferenceReleaser>>
-        m_oSRSCache{};
+    struct KnownSRID {
+        int nId;
+        std::unique_ptr<OGRSpatialReference, OGRSpatialReferenceReleaser> oSRS;
+    };
+    std::vector<KnownSRID> m_oSRSCache;
 
     OGRPGTableLayer *poLayerInCopyMode = nullptr;
 

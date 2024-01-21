@@ -986,6 +986,8 @@ int OGRPGDataSource::Open(const char *pszNewName, int bUpdate, int bTestOpen,
         CSLFetchNameValueDef(papszOpenOptions, "SKIP_VIEWS",
                              CPLGetConfigOption("PG_SKIP_VIEWS", "NO")));
 
+    m_oSRSCache.reserve(4);
+
     return TRUE;
 }
 
@@ -2489,10 +2491,10 @@ const OGRSpatialReference *OGRPGDataSource::FetchSRS(int nId)
     /* -------------------------------------------------------------------- */
     /*      First, we look through our SRID cache, is it there?             */
     /* -------------------------------------------------------------------- */
-    auto oIter = m_oSRSCache.find(nId);
-    if (oIter != m_oSRSCache.end())
+    for (const auto& known_srid : m_oSRSCache)
     {
-        return oIter->second.get();
+        if (known_srid.nId == nId)
+            return known_srid.oSRS.get();
     }
 
     EndCopy();
@@ -2543,8 +2545,8 @@ const OGRSpatialReference *OGRPGDataSource::FetchSRS(int nId)
     /* -------------------------------------------------------------------- */
     /*      Add to the cache.                                               */
     /* -------------------------------------------------------------------- */
-    oIter = m_oSRSCache.emplace(nId, std::move(poSRS)).first;
-    return oIter->second.get();
+    m_oSRSCache.push_back(KnownSRID{nId, std::move(poSRS)});
+    return m_oSRSCache.back().oSRS.get();
 }
 
 /************************************************************************/
